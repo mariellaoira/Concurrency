@@ -10,7 +10,6 @@ import com.svi.advancedjavatraining.utils.WebLoader;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -88,7 +87,7 @@ public class Main {
 			for(City city : cities)
 			{
 				// Get province for current city
-				Province province = provinceByKeyMap.get( city.getProvince() );
+				Province province = provinceByKeyMap.get( city.getProvince());
 
 				// If province is present
 				if(province != null)
@@ -110,11 +109,11 @@ public class Main {
 									population = cityInfo.getPopulation();
 
 								// Create a population object with retrieved data and return it
-								return new PopulationData( province.getName(), city.getName(), population );
+								return new PopulationData(province.getName(), city.getName(), population);
 							}
 							catch(IOException e)
 							{
-								System.out.println("Failed to load information for city " + city.getName() );
+								System.out.println("Failed to load information for city " + city.getName());
 							}
 							// No population data found
 							return null;
