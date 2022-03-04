@@ -31,33 +31,27 @@ public class Main {
 		// Create a webloader instance
 		WebLoader webLoader = new WebLoader();
 		// Submit a callable to load province data
-		Future<List<Province>> provinceFuture = executorService.submit(new Callable<List<Province>>()
-		{
+		Future<List<Province>> provinceFuture = executorService.submit(new Callable<List<Province>>() {
 			@Override
-			public List<Province> call() throws Exception
-			{
+			public List<Province> call() throws Exception {
 				return webLoader.getProvinces();
 			}
 		} );
 
 		// Submit a callable to load city data
-		Future<List<City>> cityFuture = executorService.submit(new Callable<List<City>>()
-		{
+		Future<List<City>> cityFuture = executorService.submit(new Callable<List<City>>() {
 			@Override
-			public List<City> call() throws Exception
-			{
+			public List<City> call() throws Exception {
 				return webLoader.getCities();
 			}
 		} );
 
-		try
-		{
+		try {
 			// Wait and get province data
 			List<Province> provinces = provinceFuture.get();
 
 			// If province data could not be loaded
-			if( provinces.isEmpty() )
-			{
+			if(provinces.isEmpty()) {
 				System.out.println("Could not load province data");
 				return;
 			}
@@ -65,8 +59,7 @@ public class Main {
 			// Map to keep Province keyed by province key
 			Map<String, Province> provinceByKeyMap = new HashMap<>();
 			// Populate above map, ideally only 1 province should be present for a key
-			for(Province province : provinces)
-			{
+			for(Province province : provinces) {
 				provinceByKeyMap.put(province.getKey(), province);
 			}
 
@@ -74,8 +67,7 @@ public class Main {
 			List<City> cities = cityFuture.get();
 
 			// If city data could not be loaded
-			if(cities.isEmpty())
-			{
+			if(cities.isEmpty()) {
 				System.out.println("Could not load city data");
 				return;
 			}
@@ -84,23 +76,18 @@ public class Main {
 			// Futures list which retrieve population data
 			List<Future<PopulationData>> populationDataTasks = new ArrayList<>();
 
-			for(City city : cities)
-			{
+			for(City city : cities) {
 				// Get province for current city
 				Province province = provinceByKeyMap.get( city.getProvince());
 
 				// If province is present
-				if(province != null)
-				{
+				if(province != null) {
 					// Create callable to read and return data for a city
-					Callable<PopulationData> readFileTask = new Callable<>()
-					{
+					Callable<PopulationData> readFileTask = new Callable<>() {
 						@Override
-						public PopulationData call() throws Exception
-						{
+						public PopulationData call() throws Exception {
 							JSONFileReader jsonFileReader = new JSONFileReader(province.getName(), city.getName());
-							try
-							{
+							try {
 								CityInfo cityInfo = jsonFileReader.getData();
 								float population = 0f;
 
@@ -111,15 +98,13 @@ public class Main {
 								// Create a population object with retrieved data and return it
 								return new PopulationData(province.getName(), city.getName(), population);
 							}
-							catch(IOException e)
-							{
+							catch(IOException e) {
 								System.out.println("Failed to load information for city " + city.getName());
 							}
 							// No population data found
 							return null;
 						}
 					};
-
 					// Add a future task to read and parse relevant city json file
 					populationDataTasks.add(executorService.submit(readFileTask));
 				}
@@ -128,13 +113,11 @@ public class Main {
 			// Signal executor service to shut down. It'll shut down after pending tasks are completed
 			executorService.shutdown();
 
-			for(Future<PopulationData> populationDataTask : populationDataTasks)
-			{
+			for(Future<PopulationData> populationDataTask : populationDataTasks) {
 				// Wait for task to complete
 				PopulationData populationData = populationDataTask.get();
 				// If future returns valid data, add it to population list
-				if(populationData != null)
-				{
+				if(populationData != null) {
 					populationDataList.add(populationData);
 				}
 			}
@@ -148,8 +131,7 @@ public class Main {
 			System.out.println("--------------------------------------------------------------------------");
 
 			// For each data point
-			for(PopulationData populationData : populationDataList)
-			{
+			for(PopulationData populationData : populationDataList) {
 				// Add to file writer
 				populationFileWriter.addPopulationRecord(populationData);
 				// Print data
@@ -160,8 +142,7 @@ public class Main {
 			populationFileWriter.writeToFile();
 
 		}
-		catch(InterruptedException | ExecutionException | IOException e)
-		{
+		catch(InterruptedException | ExecutionException | IOException e) {
 			e.printStackTrace();
 		}
 		// END WORK AREA
